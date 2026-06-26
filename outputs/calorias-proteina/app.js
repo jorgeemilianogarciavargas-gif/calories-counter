@@ -8,6 +8,7 @@ const defaultGoals = {
 };
 
 const state = {
+  activeView: "today",
   goals: readJson(goalsKey, defaultGoals),
   entries: readJson(storageKey, []),
 };
@@ -22,18 +23,27 @@ const nodes = {
   proteinGoalText: document.querySelector("#proteinGoalText"),
   caloriesTotal: document.querySelector("#caloriesTotal"),
   proteinTotal: document.querySelector("#proteinTotal"),
-  calorieRing: document.querySelector("#calorieRing"),
-  proteinRing: document.querySelector("#proteinRing"),
+  calorieBar: document.querySelector("#calorieBar"),
+  proteinBar: document.querySelector("#proteinBar"),
   caloriePercent: document.querySelector("#caloriePercent"),
   proteinPercent: document.querySelector("#proteinPercent"),
+  dailyScore: document.querySelector("#dailyScore"),
   entriesList: document.querySelector("#entriesList"),
   emptyState: document.querySelector("#emptyState"),
   entryCount: document.querySelector("#entryCount"),
   template: document.querySelector("#entryTemplate"),
+  views: document.querySelectorAll(".view"),
+  navButtons: document.querySelectorAll("[data-go-view]"),
 };
 
 nodes.caloriesGoal.value = state.goals.calories;
 nodes.proteinGoal.value = state.goals.protein;
+
+nodes.navButtons.forEach((button) => {
+  button.addEventListener("click", () => {
+    setView(button.dataset.goView);
+  });
+});
 
 nodes.form.addEventListener("submit", (event) => {
   event.preventDefault();
@@ -61,7 +71,7 @@ nodes.form.addEventListener("submit", (event) => {
   document.querySelector("#servings").value = 1;
   document.querySelector('input[name="meal"][value="Desayuno"]').checked = true;
   render();
-  document.querySelector("#foodName").focus();
+  setView("today");
 });
 
 nodes.saveGoals.addEventListener("click", () => {
@@ -90,6 +100,26 @@ nodes.entriesList.addEventListener("click", (event) => {
   render();
 });
 
+function setView(viewName) {
+  state.activeView = viewName;
+  nodes.views.forEach((view) => {
+    view.classList.toggle("is-active", view.dataset.view === viewName);
+  });
+  document.querySelectorAll(".bottom-nav .nav-button").forEach((button) => {
+    const isActive = button.dataset.goView === viewName;
+    button.classList.toggle("is-active", isActive);
+    if (isActive) {
+      button.setAttribute("aria-current", "page");
+    } else {
+      button.removeAttribute("aria-current");
+    }
+  });
+  window.scrollTo({ top: 0, behavior: "smooth" });
+  if (viewName === "add") {
+    setTimeout(() => document.querySelector("#foodName").focus(), 120);
+  }
+}
+
 function render() {
   const totals = state.entries.reduce(
     (sum, entry) => ({
@@ -99,6 +129,10 @@ function render() {
     { calories: 0, protein: 0 },
   );
 
+  const caloriePercent = percentOf(totals.calories, state.goals.calories);
+  const proteinPercent = percentOf(totals.protein, state.goals.protein);
+  const dailyScore = Math.round((Math.min(caloriePercent, 100) + Math.min(proteinPercent, 100)) / 2);
+
   nodes.caloriesTotal.textContent = formatNumber(totals.calories, 0);
   nodes.proteinTotal.textContent = formatNumber(totals.protein, 1);
   nodes.caloriesGoalText.textContent = formatNumber(state.goals.calories, 0);
@@ -106,8 +140,9 @@ function render() {
   nodes.caloriesGoal.value = state.goals.calories;
   nodes.proteinGoal.value = state.goals.protein;
 
-  setProgress(nodes.calorieRing, nodes.caloriePercent, totals.calories, state.goals.calories);
-  setProgress(nodes.proteinRing, nodes.proteinPercent, totals.protein, state.goals.protein);
+  setProgress(nodes.calorieBar, nodes.caloriePercent, caloriePercent);
+  setProgress(nodes.proteinBar, nodes.proteinPercent, proteinPercent);
+  nodes.dailyScore.textContent = `${dailyScore}%`;
 
   nodes.entryCount.textContent = `${state.entries.length} ${state.entries.length === 1 ? "item" : "items"}`;
   nodes.emptyState.hidden = state.entries.length > 0;
@@ -125,10 +160,12 @@ function renderEntry(entry) {
   return node;
 }
 
-function setProgress(ring, label, value, goal) {
-  const percent = goal > 0 ? Math.round((value / goal) * 100) : 0;
-  const degrees = Math.min(percent, 100) * 3.6;
-  ring.style.setProperty("--progress", `${degrees}deg`);
+function percentOf(value, goal) {
+  return goal > 0 ? Math.round((value / goal) * 100) : 0;
+}
+
+function setProgress(bar, label, percent) {
+  bar.style.width = `${Math.min(percent, 100)}%`;
   label.textContent = `${percent}%`;
 }
 
@@ -162,3 +199,4 @@ if ("serviceWorker" in navigator && location.protocol !== "file:") {
 }
 
 render();
+setView("today");

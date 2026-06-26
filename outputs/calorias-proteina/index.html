@@ -3,113 +3,147 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-    <meta name="theme-color" content="#173f3a" />
+    <meta name="theme-color" content="#123c36" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-title" content="Macros" />
     <title>Calorias y Proteina</title>
     <link rel="manifest" href="./manifest.json" />
     <link rel="stylesheet" href="./styles.css" />
   </head>
   <body>
-    <main class="app-shell">
-      <header class="topbar">
+    <main class="mobile-app">
+      <header class="app-header">
         <div>
-          <p class="eyebrow">Diario nutricional</p>
-          <h1>Calorias y Proteina</h1>
+          <p class="eyebrow">Hoy</p>
+          <h1>Macros</h1>
         </div>
         <button class="icon-button" id="resetDay" type="button" aria-label="Limpiar dia" title="Limpiar dia">
           <span aria-hidden="true">↺</span>
         </button>
       </header>
 
-      <section class="summary-grid" aria-label="Resumen del dia">
-        <article class="metric-card calories">
-          <div class="ring" id="calorieRing" aria-hidden="true">
-            <span id="caloriePercent">0%</span>
-          </div>
+      <section class="view is-active" id="viewToday" data-view="today" aria-labelledby="todayTitle">
+        <div class="hero-summary">
           <div>
-            <p>Calorias</p>
-            <strong><span id="caloriesTotal">0</span> / <span id="caloriesGoalText">2200</span></strong>
-            <small>kcal de hoy</small>
+            <p class="eyebrow">Resumen diario</p>
+            <h2 id="todayTitle"><span id="caloriesTotal">0</span> kcal</h2>
+            <span><span id="proteinTotal">0</span>g proteina</span>
           </div>
-        </article>
-        <article class="metric-card protein">
-          <div class="ring" id="proteinRing" aria-hidden="true">
-            <span id="proteinPercent">0%</span>
+          <div class="score-pill">
+            <strong id="dailyScore">0%</strong>
+            <span>avance</span>
           </div>
-          <div>
-            <p>Proteina</p>
-            <strong><span id="proteinTotal">0</span> / <span id="proteinGoalText">160</span>g</strong>
-            <small>gramos de hoy</small>
-          </div>
-        </article>
-      </section>
-
-      <section class="panel goals-panel" aria-labelledby="goalsTitle">
-        <div class="section-title">
-          <h2 id="goalsTitle">Metas</h2>
-          <button class="ghost-button" id="saveGoals" type="button">Guardar</button>
         </div>
-        <div class="goal-inputs">
-          <label>
-            <span>Calorias</span>
-            <input id="caloriesGoal" type="number" inputmode="numeric" min="1" step="50" value="2200" />
-          </label>
-          <label>
-            <span>Proteina</span>
-            <input id="proteinGoal" type="number" inputmode="decimal" min="1" step="5" value="160" />
-          </label>
-        </div>
-      </section>
 
-      <section class="panel" aria-labelledby="entryTitle">
-        <div class="section-title">
-          <h2 id="entryTitle">Agregar alimento</h2>
+        <div class="metric-stack" aria-label="Progreso diario">
+          <article class="metric-card calories">
+            <div class="metric-title">
+              <span>Calorias</span>
+              <strong><span id="caloriePercent">0%</span></strong>
+            </div>
+            <div class="progress-track"><span id="calorieBar"></span></div>
+            <small><span id="caloriesGoalText">2200</span> kcal meta</small>
+          </article>
+          <article class="metric-card protein">
+            <div class="metric-title">
+              <span>Proteina</span>
+              <strong><span id="proteinPercent">0%</span></strong>
+            </div>
+            <div class="progress-track"><span id="proteinBar"></span></div>
+            <small><span id="proteinGoalText">160</span>g meta</small>
+          </article>
         </div>
-        <form id="foodForm" autocomplete="off">
-          <label class="full">
-            <span>Nombre</span>
-            <input id="foodName" required maxlength="40" placeholder="Ej. Pechuga de pollo" />
-          </label>
 
-          <div class="meal-tabs" role="radiogroup" aria-label="Comida">
-            <label><input type="radio" name="meal" value="Desayuno" checked /><span>Desayuno</span></label>
-            <label><input type="radio" name="meal" value="Comida" /><span>Comida</span></label>
-            <label><input type="radio" name="meal" value="Cena" /><span>Cena</span></label>
-            <label><input type="radio" name="meal" value="Snack" /><span>Snack</span></label>
+        <section class="panel" aria-labelledby="goalsTitle">
+          <div class="section-title">
+            <h2 id="goalsTitle">Metas</h2>
+            <button class="ghost-button" id="saveGoals" type="button">Guardar</button>
           </div>
-
-          <div class="form-grid">
+          <div class="goal-inputs">
             <label>
-              <span>Porciones</span>
-              <input id="servings" type="number" inputmode="decimal" min="0.1" step="0.1" value="1" required />
+              <span>Calorias</span>
+              <input id="caloriesGoal" type="number" inputmode="numeric" min="1" step="50" value="2200" />
             </label>
             <label>
-              <span>kcal/porcion</span>
-              <input id="calories" type="number" inputmode="numeric" min="0" step="1" required />
-            </label>
-            <label>
-              <span>Proteina/porcion</span>
-              <input id="protein" type="number" inputmode="decimal" min="0" step="0.1" required />
+              <span>Proteina</span>
+              <input id="proteinGoal" type="number" inputmode="decimal" min="1" step="5" value="160" />
             </label>
           </div>
+        </section>
 
-          <button class="primary-button" type="submit">Agregar</button>
-        </form>
+        <button class="primary-button floating-add" type="button" data-go-view="add">Agregar alimento</button>
       </section>
 
-      <section class="panel entries-panel" aria-labelledby="logTitle">
-        <div class="section-title">
-          <h2 id="logTitle">Registro</h2>
-          <span id="entryCount">0 items</span>
-        </div>
-        <div id="emptyState" class="empty-state">
-          <div class="plate-art" aria-hidden="true">
-            <span></span>
+      <section class="view" id="viewAdd" data-view="add" aria-labelledby="entryTitle">
+        <section class="panel add-panel">
+          <div class="section-title">
+            <h2 id="entryTitle">Agregar alimento</h2>
           </div>
-          <p>Agrega tu primer alimento para ver tus totales del dia.</p>
-        </div>
-        <div id="entriesList" class="entries-list"></div>
+          <form id="foodForm" autocomplete="off">
+            <label class="full">
+              <span>Nombre</span>
+              <input id="foodName" required maxlength="40" placeholder="Ej. Pechuga de pollo" />
+            </label>
+
+            <div class="meal-tabs" role="radiogroup" aria-label="Comida">
+              <label><input type="radio" name="meal" value="Desayuno" checked /><span>Desayuno</span></label>
+              <label><input type="radio" name="meal" value="Comida" /><span>Comida</span></label>
+              <label><input type="radio" name="meal" value="Cena" /><span>Cena</span></label>
+              <label><input type="radio" name="meal" value="Snack" /><span>Snack</span></label>
+            </div>
+
+            <div class="form-grid">
+              <label>
+                <span>Porciones</span>
+                <input id="servings" type="number" inputmode="decimal" min="0.1" step="0.1" value="1" required />
+              </label>
+              <label>
+                <span>kcal/porcion</span>
+                <input id="calories" type="number" inputmode="numeric" min="0" step="1" required />
+              </label>
+              <label>
+                <span>Proteina/porcion</span>
+                <input id="protein" type="number" inputmode="decimal" min="0" step="0.1" required />
+              </label>
+            </div>
+
+            <button class="primary-button" type="submit">Agregar</button>
+          </form>
+        </section>
+      </section>
+
+      <section class="view" id="viewLog" data-view="log" aria-labelledby="logTitle">
+        <section class="panel entries-panel">
+          <div class="section-title">
+            <h2 id="logTitle">Historial de hoy</h2>
+            <span id="entryCount">0 items</span>
+          </div>
+          <div id="emptyState" class="empty-state">
+            <div class="plate-art" aria-hidden="true">
+              <span></span>
+            </div>
+            <p>Agrega tu primer alimento para ver tus totales del dia.</p>
+          </div>
+          <div id="entriesList" class="entries-list"></div>
+        </section>
       </section>
     </main>
+
+    <nav class="bottom-nav" aria-label="Navegacion principal">
+      <button class="nav-button is-active" type="button" data-go-view="today" aria-current="page">
+        <span aria-hidden="true">⌂</span>
+        Hoy
+      </button>
+      <button class="nav-button add-tab" type="button" data-go-view="add">
+        <span aria-hidden="true">+</span>
+        Agregar
+      </button>
+      <button class="nav-button" type="button" data-go-view="log">
+        <span aria-hidden="true">≡</span>
+        Historial
+      </button>
+    </nav>
 
     <template id="entryTemplate">
       <article class="entry-card">
