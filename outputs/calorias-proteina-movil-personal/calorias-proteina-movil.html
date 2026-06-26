@@ -1,0 +1,1005 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#123c36" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-title" content="Macros" />
+    <title>Calorias y Proteina</title>
+    <style>
+:root {
+  color-scheme: light;
+  --bg: #f3f1eb;
+  --ink: #172421;
+  --muted: #66736d;
+  --panel: #fffdf8;
+  --line: #ded8cc;
+  --green: #1f6f63;
+  --green-dark: #123c36;
+  --coral: #df5d4d;
+  --gold: #f4b942;
+  --shadow: 0 18px 42px rgba(23, 36, 33, 0.13);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  min-height: 100%;
+  background: var(--bg);
+}
+
+body {
+  min-height: 100%;
+  margin: 0;
+  color: var(--ink);
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  letter-spacing: 0;
+  overscroll-behavior-y: contain;
+}
+
+button,
+input {
+  font: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+
+.mobile-app {
+  width: min(100%, 520px);
+  min-height: 100vh;
+  margin: 0 auto;
+  padding: calc(16px + env(safe-area-inset-top)) 16px calc(92px + env(safe-area-inset-bottom));
+}
+
+.app-header {
+  position: sticky;
+  top: 0;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin: -16px -16px 14px;
+  padding: calc(16px + env(safe-area-inset-top)) 16px 12px;
+  background: color-mix(in srgb, var(--bg) 92%, white);
+  backdrop-filter: blur(14px);
+}
+
+.eyebrow,
+.metric-title span,
+.section-title span,
+label span,
+.entry-meal,
+.entry-servings,
+.entry-protein,
+.metric-card small,
+.hero-summary span,
+.score-pill span {
+  color: var(--muted);
+}
+
+.eyebrow {
+  margin: 0 0 2px;
+  font-size: 0.75rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+h1,
+h2,
+h3,
+p {
+  margin: 0;
+}
+
+h1 {
+  font-size: 2.15rem;
+  line-height: 0.95;
+}
+
+h2 {
+  font-size: 1.08rem;
+}
+
+.icon-button,
+.delete-button {
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  border: 0;
+  border-radius: 999px;
+}
+
+.icon-button {
+  width: 44px;
+  height: 44px;
+  color: white;
+  background: var(--green-dark);
+  box-shadow: var(--shadow);
+  font-size: 1.3rem;
+}
+
+.view {
+  display: none;
+}
+
+.view.is-active {
+  display: block;
+}
+
+.hero-summary {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 92px;
+  align-items: center;
+  gap: 14px;
+  min-height: 156px;
+  padding: 22px;
+  border-radius: 8px;
+  color: white;
+  background:
+    radial-gradient(circle at 85% 20%, rgba(244, 185, 66, 0.36), transparent 32%),
+    linear-gradient(135deg, #123c36, #1f6f63);
+  box-shadow: var(--shadow);
+}
+
+.hero-summary .eyebrow,
+.hero-summary span {
+  color: rgba(255, 255, 255, 0.76);
+}
+
+.hero-summary h2 {
+  margin: 6px 0 4px;
+  font-size: clamp(2.3rem, 14vw, 4rem);
+  line-height: 0.95;
+}
+
+.score-pill {
+  display: grid;
+  place-items: center;
+  width: 92px;
+  aspect-ratio: 1;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.score-pill strong {
+  font-size: 1.35rem;
+}
+
+.score-pill span {
+  font-size: 0.75rem;
+  font-weight: 800;
+}
+
+.metric-stack {
+  display: grid;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.metric-card,
+.panel {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+}
+
+.metric-card {
+  padding: 15px;
+  box-shadow: 0 10px 26px rgba(23, 36, 33, 0.08);
+}
+
+.metric-title,
+.section-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.metric-title strong {
+  font-size: 1rem;
+}
+
+.progress-track {
+  height: 12px;
+  margin: 12px 0 8px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: #ebe5d8;
+}
+
+.progress-track span {
+  display: block;
+  width: 0%;
+  height: 100%;
+  border-radius: inherit;
+  transition: width 180ms ease;
+}
+
+.calories .progress-track span {
+  background: var(--coral);
+}
+
+.protein .progress-track span {
+  background: var(--green);
+}
+
+.panel {
+  margin-top: 12px;
+  padding: 16px;
+}
+
+.section-title {
+  margin-bottom: 14px;
+}
+
+.ghost-button {
+  min-height: 36px;
+  padding: 0 13px;
+  border: 1px solid #c8c1b2;
+  border-radius: 8px;
+  color: var(--green-dark);
+  background: transparent;
+  font-weight: 800;
+}
+
+.goal-inputs,
+.form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+label {
+  display: grid;
+  gap: 6px;
+}
+
+label.full {
+  margin-bottom: 0;
+}
+
+label span {
+  font-size: 0.82rem;
+  font-weight: 800;
+}
+
+input {
+  width: 100%;
+  min-height: 50px;
+  padding: 0 12px;
+  border: 1px solid #cfc8ba;
+  border-radius: 8px;
+  color: var(--ink);
+  background: #fffaf0;
+  outline: none;
+}
+
+input:focus {
+  border-color: var(--green);
+  box-shadow: 0 0 0 3px rgba(31, 111, 99, 0.14);
+}
+
+.lookup-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 94px;
+  gap: 10px;
+  align-items: end;
+  margin-bottom: 8px;
+}
+
+.lookup-button {
+  min-height: 50px;
+  border: 1px solid var(--green-dark);
+  border-radius: 8px;
+  color: white;
+  background: var(--green-dark);
+  font-weight: 850;
+}
+
+.lookup-status {
+  min-height: 38px;
+  margin: 0 0 12px;
+  color: var(--muted);
+  font-size: 0.86rem;
+  line-height: 1.3;
+}
+
+.meal-tabs {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.meal-tabs label {
+  min-width: 0;
+}
+
+.meal-tabs input {
+  position: absolute;
+  width: 1px;
+  min-height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.meal-tabs span {
+  display: grid;
+  place-items: center;
+  min-height: 40px;
+  padding: 0 6px;
+  border: 1px solid #cfc8ba;
+  border-radius: 8px;
+  color: var(--ink);
+  background: #fffaf0;
+  font-size: clamp(0.68rem, 2.8vw, 0.82rem);
+  font-weight: 850;
+  text-align: center;
+}
+
+.meal-tabs input:checked + span {
+  color: white;
+  border-color: var(--green-dark);
+  background: var(--green-dark);
+}
+
+.form-grid {
+  grid-template-columns: 0.85fr 1fr 1fr;
+}
+
+.primary-button {
+  width: 100%;
+  min-height: 54px;
+  margin-top: 14px;
+  border: 0;
+  border-radius: 8px;
+  color: white;
+  background: var(--green);
+  font-weight: 850;
+  box-shadow: 0 12px 26px rgba(31, 111, 99, 0.22);
+}
+
+.floating-add {
+  margin-top: 12px;
+}
+
+.empty-state {
+  display: grid;
+  justify-items: center;
+  gap: 10px;
+  padding: 42px 8px;
+  text-align: center;
+}
+
+.plate-art {
+  display: grid;
+  place-items: center;
+  width: 86px;
+  aspect-ratio: 1;
+  border: 8px solid #e8dfce;
+  border-radius: 999px;
+  background:
+    radial-gradient(circle at 40% 48%, var(--coral) 0 12px, transparent 13px),
+    radial-gradient(circle at 62% 42%, var(--gold) 0 11px, transparent 12px),
+    radial-gradient(circle at 55% 66%, var(--green) 0 10px, transparent 11px),
+    #fffaf0;
+}
+
+.plate-art span {
+  width: 34px;
+  height: 34px;
+  border: 4px solid rgba(23, 36, 33, 0.08);
+  border-radius: inherit;
+}
+
+.entries-list {
+  display: grid;
+  gap: 10px;
+}
+
+.entry-card {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 12px;
+  align-items: center;
+  padding: 14px;
+  border: 1px solid #e1dbcf;
+  border-radius: 8px;
+  background: #fffaf0;
+}
+
+.entry-name {
+  margin: 3px 0 4px;
+  overflow-wrap: anywhere;
+  font-size: 1rem;
+}
+
+.entry-meal,
+.entry-servings,
+.entry-protein {
+  font-size: 0.82rem;
+}
+
+.entry-values {
+  display: grid;
+  grid-template-columns: auto 34px;
+  align-items: center;
+  justify-items: end;
+  column-gap: 8px;
+}
+
+.entry-calories {
+  grid-column: 1;
+  font-size: 1.05rem;
+}
+
+.entry-protein {
+  grid-column: 1;
+}
+
+.delete-button {
+  grid-row: 1 / span 2;
+  grid-column: 2;
+  width: 34px;
+  height: 34px;
+  color: #7d2f27;
+  background: #f7ded9;
+  font-size: 1.35rem;
+  line-height: 1;
+}
+
+.bottom-nav {
+  position: fixed;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 4;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  width: min(100%, 520px);
+  margin: 0 auto;
+  padding: 8px 10px calc(8px + env(safe-area-inset-bottom));
+  border-top: 1px solid var(--line);
+  background: rgba(255, 253, 248, 0.96);
+  backdrop-filter: blur(14px);
+  box-shadow: 0 -16px 34px rgba(23, 36, 33, 0.12);
+}
+
+.nav-button {
+  display: grid;
+  place-items: center;
+  gap: 3px;
+  min-height: 54px;
+  border: 0;
+  border-radius: 8px;
+  color: var(--muted);
+  background: transparent;
+  font-size: 0.76rem;
+  font-weight: 850;
+}
+
+.nav-button span {
+  font-size: 1.18rem;
+  line-height: 1;
+}
+
+.nav-button.is-active {
+  color: white;
+  background: var(--green-dark);
+}
+
+.add-tab {
+  color: var(--green-dark);
+}
+
+@media (max-width: 370px) {
+  .mobile-app {
+    padding-inline: 12px;
+  }
+
+  .app-header {
+    margin-inline: -12px;
+    padding-inline: 12px;
+  }
+
+  .hero-summary {
+    grid-template-columns: minmax(0, 1fr) 78px;
+    padding: 18px;
+  }
+
+  .score-pill {
+    width: 78px;
+  }
+
+  .form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .lookup-row {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (min-width: 640px) {
+  .mobile-app {
+    padding-top: 22px;
+  }
+}
+
+    </style>
+  </head>
+  <body>
+    <main class="mobile-app">
+      <header class="app-header">
+        <div>
+          <p class="eyebrow">Hoy</p>
+          <h1>Macros</h1>
+        </div>
+        <button class="icon-button" id="resetDay" type="button" aria-label="Limpiar dia" title="Limpiar dia">
+          <span aria-hidden="true">↺</span>
+        </button>
+      </header>
+
+      <section class="view is-active" id="viewToday" data-view="today" aria-labelledby="todayTitle">
+        <div class="hero-summary">
+          <div>
+            <p class="eyebrow">Resumen diario</p>
+            <h2 id="todayTitle"><span id="caloriesTotal">0</span> kcal</h2>
+            <span><span id="proteinTotal">0</span>g proteina</span>
+          </div>
+          <div class="score-pill">
+            <strong id="dailyScore">0%</strong>
+            <span>avance</span>
+          </div>
+        </div>
+
+        <div class="metric-stack" aria-label="Progreso diario">
+          <article class="metric-card calories">
+            <div class="metric-title">
+              <span>Calorias</span>
+              <strong><span id="caloriePercent">0%</span></strong>
+            </div>
+            <div class="progress-track"><span id="calorieBar"></span></div>
+            <small><span id="caloriesGoalText">2200</span> kcal meta</small>
+          </article>
+          <article class="metric-card protein">
+            <div class="metric-title">
+              <span>Proteina</span>
+              <strong><span id="proteinPercent">0%</span></strong>
+            </div>
+            <div class="progress-track"><span id="proteinBar"></span></div>
+            <small><span id="proteinGoalText">160</span>g meta</small>
+          </article>
+        </div>
+
+        <section class="panel" aria-labelledby="goalsTitle">
+          <div class="section-title">
+            <h2 id="goalsTitle">Metas</h2>
+            <button class="ghost-button" id="saveGoals" type="button">Guardar</button>
+          </div>
+          <div class="goal-inputs">
+            <label>
+              <span>Calorias</span>
+              <input id="caloriesGoal" type="number" inputmode="numeric" min="1" step="50" value="2200" />
+            </label>
+            <label>
+              <span>Proteina</span>
+              <input id="proteinGoal" type="number" inputmode="decimal" min="1" step="5" value="160" />
+            </label>
+          </div>
+        </section>
+
+        <button class="primary-button floating-add" type="button" data-go-view="add">Agregar alimento</button>
+      </section>
+
+      <section class="view" id="viewAdd" data-view="add" aria-labelledby="entryTitle">
+        <section class="panel add-panel">
+          <div class="section-title">
+            <h2 id="entryTitle">Agregar alimento</h2>
+          </div>
+          <form id="foodForm" autocomplete="off">
+            <div class="lookup-row">
+              <label class="full">
+                <span>Alimento</span>
+                <input id="foodName" required maxlength="40" placeholder="Ej. pechuga de pollo" />
+              </label>
+              <button class="lookup-button" id="lookupFood" type="button">Buscar</button>
+            </div>
+            <p class="lookup-status" id="lookupStatus">Busca un alimento para calcular sus macros.</p>
+
+            <div class="meal-tabs" role="radiogroup" aria-label="Comida">
+              <label><input type="radio" name="meal" value="Desayuno" checked /><span>Desayuno</span></label>
+              <label><input type="radio" name="meal" value="Comida" /><span>Comida</span></label>
+              <label><input type="radio" name="meal" value="Cena" /><span>Cena</span></label>
+              <label><input type="radio" name="meal" value="Snack" /><span>Snack</span></label>
+            </div>
+
+            <div class="form-grid">
+              <label>
+                <span>Gramos</span>
+                <input id="grams" type="number" inputmode="decimal" min="1" step="1" value="100" required />
+              </label>
+              <label>
+                <span>kcal/100g</span>
+                <input id="caloriesPer100" type="number" inputmode="decimal" min="0" step="0.1" required />
+              </label>
+              <label>
+                <span>Proteina/100g</span>
+                <input id="proteinPer100" type="number" inputmode="decimal" min="0" step="0.1" required />
+              </label>
+            </div>
+
+            <button class="primary-button" type="submit">Agregar</button>
+          </form>
+        </section>
+      </section>
+
+      <section class="view" id="viewLog" data-view="log" aria-labelledby="logTitle">
+        <section class="panel entries-panel">
+          <div class="section-title">
+            <h2 id="logTitle">Historial de hoy</h2>
+            <span id="entryCount">0 items</span>
+          </div>
+          <div id="emptyState" class="empty-state">
+            <div class="plate-art" aria-hidden="true">
+              <span></span>
+            </div>
+            <p>Agrega tu primer alimento para ver tus totales del dia.</p>
+          </div>
+          <div id="entriesList" class="entries-list"></div>
+        </section>
+      </section>
+    </main>
+
+    <nav class="bottom-nav" aria-label="Navegacion principal">
+      <button class="nav-button is-active" type="button" data-go-view="today" aria-current="page">
+        <span aria-hidden="true">⌂</span>
+        Hoy
+      </button>
+      <button class="nav-button add-tab" type="button" data-go-view="add">
+        <span aria-hidden="true">+</span>
+        Agregar
+      </button>
+      <button class="nav-button" type="button" data-go-view="log">
+        <span aria-hidden="true">≡</span>
+        Historial
+      </button>
+    </nav>
+
+    <template id="entryTemplate">
+      <article class="entry-card">
+        <div>
+          <p class="entry-meal"></p>
+          <h3 class="entry-name"></h3>
+          <span class="entry-servings"></span>
+        </div>
+        <div class="entry-values">
+          <strong class="entry-calories"></strong>
+          <span class="entry-protein"></span>
+          <button class="delete-button" type="button" aria-label="Eliminar alimento" title="Eliminar">×</button>
+        </div>
+      </article>
+    </template>
+
+    <script>
+const todayKey = new Date().toISOString().slice(0, 10);
+const storageKey = `macro-diary:${todayKey}`;
+const goalsKey = "macro-diary:goals";
+
+const defaultGoals = {
+  calories: 2200,
+  protein: 160,
+};
+
+const localFoods = [
+  { keywords: ["pollo", "pechuga"], name: "Pechuga de pollo", calories: 165, protein: 31 },
+  { keywords: ["atun", "atún"], name: "Atun", calories: 132, protein: 28 },
+  { keywords: ["huevo"], name: "Huevo", calories: 143, protein: 12.6 },
+  { keywords: ["arroz"], name: "Arroz cocido", calories: 130, protein: 2.7 },
+  { keywords: ["frijol", "frijoles"], name: "Frijoles cocidos", calories: 132, protein: 8.9 },
+  { keywords: ["avena"], name: "Avena", calories: 389, protein: 16.9 },
+  { keywords: ["leche"], name: "Leche entera", calories: 61, protein: 3.2 },
+  { keywords: ["yogur", "yogurt"], name: "Yogur griego natural", calories: 97, protein: 9 },
+  { keywords: ["platano", "plátano", "banana"], name: "Platano", calories: 89, protein: 1.1 },
+  { keywords: ["manzana"], name: "Manzana", calories: 52, protein: 0.3 },
+  { keywords: ["tortilla"], name: "Tortilla de maiz", calories: 218, protein: 5.7 },
+  { keywords: ["res", "carne"], name: "Carne de res magra", calories: 250, protein: 26 },
+  { keywords: ["salmon", "salmón"], name: "Salmon", calories: 208, protein: 20 },
+  { keywords: ["papa", "patata"], name: "Papa cocida", calories: 87, protein: 1.9 },
+];
+
+const state = {
+  activeView: "today",
+  goals: readJson(goalsKey, defaultGoals),
+  entries: readJson(storageKey, []),
+};
+
+const nodes = {
+  form: document.querySelector("#foodForm"),
+  resetDay: document.querySelector("#resetDay"),
+  saveGoals: document.querySelector("#saveGoals"),
+  lookupFood: document.querySelector("#lookupFood"),
+  lookupStatus: document.querySelector("#lookupStatus"),
+  caloriesGoal: document.querySelector("#caloriesGoal"),
+  proteinGoal: document.querySelector("#proteinGoal"),
+  caloriesGoalText: document.querySelector("#caloriesGoalText"),
+  proteinGoalText: document.querySelector("#proteinGoalText"),
+  caloriesTotal: document.querySelector("#caloriesTotal"),
+  proteinTotal: document.querySelector("#proteinTotal"),
+  calorieBar: document.querySelector("#calorieBar"),
+  proteinBar: document.querySelector("#proteinBar"),
+  caloriePercent: document.querySelector("#caloriePercent"),
+  proteinPercent: document.querySelector("#proteinPercent"),
+  dailyScore: document.querySelector("#dailyScore"),
+  entriesList: document.querySelector("#entriesList"),
+  emptyState: document.querySelector("#emptyState"),
+  entryCount: document.querySelector("#entryCount"),
+  template: document.querySelector("#entryTemplate"),
+  views: document.querySelectorAll(".view"),
+  navButtons: document.querySelectorAll("[data-go-view]"),
+};
+
+nodes.caloriesGoal.value = state.goals.calories;
+nodes.proteinGoal.value = state.goals.protein;
+
+nodes.navButtons.forEach((button) => {
+  button.addEventListener("click", () => {
+    setView(button.dataset.goView);
+  });
+});
+
+nodes.lookupFood.addEventListener("click", lookupFood);
+document.querySelector("#foodName").addEventListener("change", lookupFood);
+
+nodes.form.addEventListener("submit", (event) => {
+  event.preventDefault();
+
+  const data = new FormData(nodes.form);
+  const grams = numberFrom("#grams", 100);
+  const caloriesPer100 = numberFrom("#caloriesPer100", 0);
+  const proteinPer100 = numberFrom("#proteinPer100", 0);
+  const name = document.querySelector("#foodName").value.trim();
+
+  if (!name || grams <= 0) return;
+
+  state.entries.unshift({
+    id: crypto.randomUUID(),
+    name,
+    meal: data.get("meal"),
+    grams,
+    calories: (caloriesPer100 * grams) / 100,
+    protein: (proteinPer100 * grams) / 100,
+    createdAt: new Date().toISOString(),
+  });
+
+  saveEntries();
+  nodes.form.reset();
+  document.querySelector("#grams").value = 100;
+  nodes.lookupStatus.textContent = "Busca un alimento para calcular sus macros.";
+  document.querySelector('input[name="meal"][value="Desayuno"]').checked = true;
+  render();
+  setView("today");
+});
+
+nodes.saveGoals.addEventListener("click", () => {
+  state.goals = {
+    calories: Math.max(1, numberFrom("#caloriesGoal", defaultGoals.calories)),
+    protein: Math.max(1, numberFrom("#proteinGoal", defaultGoals.protein)),
+  };
+  localStorage.setItem(goalsKey, JSON.stringify(state.goals));
+  render();
+});
+
+nodes.resetDay.addEventListener("click", () => {
+  if (!state.entries.length) return;
+  const shouldReset = window.confirm("Quieres limpiar el registro de hoy?");
+  if (!shouldReset) return;
+  state.entries = [];
+  saveEntries();
+  render();
+});
+
+nodes.entriesList.addEventListener("click", (event) => {
+  const button = event.target.closest(".delete-button");
+  if (!button) return;
+  state.entries = state.entries.filter((entry) => entry.id !== button.dataset.id);
+  saveEntries();
+  render();
+});
+
+function setView(viewName) {
+  state.activeView = viewName;
+  nodes.views.forEach((view) => {
+    view.classList.toggle("is-active", view.dataset.view === viewName);
+  });
+  document.querySelectorAll(".bottom-nav .nav-button").forEach((button) => {
+    const isActive = button.dataset.goView === viewName;
+    button.classList.toggle("is-active", isActive);
+    if (isActive) {
+      button.setAttribute("aria-current", "page");
+    } else {
+      button.removeAttribute("aria-current");
+    }
+  });
+  window.scrollTo({ top: 0, behavior: "smooth" });
+  if (viewName === "add") {
+    setTimeout(() => document.querySelector("#foodName").focus(), 120);
+  }
+}
+
+function render() {
+  const totals = state.entries.reduce(
+    (sum, entry) => ({
+      calories: sum.calories + entry.calories,
+      protein: sum.protein + entry.protein,
+    }),
+    { calories: 0, protein: 0 },
+  );
+
+  const caloriePercent = percentOf(totals.calories, state.goals.calories);
+  const proteinPercent = percentOf(totals.protein, state.goals.protein);
+  const dailyScore = Math.round((Math.min(caloriePercent, 100) + Math.min(proteinPercent, 100)) / 2);
+
+  nodes.caloriesTotal.textContent = formatNumber(totals.calories, 0);
+  nodes.proteinTotal.textContent = formatNumber(totals.protein, 1);
+  nodes.caloriesGoalText.textContent = formatNumber(state.goals.calories, 0);
+  nodes.proteinGoalText.textContent = formatNumber(state.goals.protein, 0);
+  nodes.caloriesGoal.value = state.goals.calories;
+  nodes.proteinGoal.value = state.goals.protein;
+
+  setProgress(nodes.calorieBar, nodes.caloriePercent, caloriePercent);
+  setProgress(nodes.proteinBar, nodes.proteinPercent, proteinPercent);
+  nodes.dailyScore.textContent = `${dailyScore}%`;
+
+  nodes.entryCount.textContent = `${state.entries.length} ${state.entries.length === 1 ? "item" : "items"}`;
+  nodes.emptyState.hidden = state.entries.length > 0;
+  nodes.entriesList.replaceChildren(...state.entries.map(renderEntry));
+}
+
+function renderEntry(entry) {
+  const node = nodes.template.content.firstElementChild.cloneNode(true);
+  node.querySelector(".entry-meal").textContent = entry.meal;
+  node.querySelector(".entry-name").textContent = entry.name;
+  node.querySelector(".entry-servings").textContent = entry.grams
+    ? `${formatNumber(entry.grams, 0)}g`
+    : `${formatNumber(entry.servings || 1, 1)} porcion${entry.servings === 1 ? "" : "es"}`;
+  node.querySelector(".entry-calories").textContent = `${formatNumber(entry.calories, 0)} kcal`;
+  node.querySelector(".entry-protein").textContent = `${formatNumber(entry.protein, 1)}g proteina`;
+  node.querySelector(".delete-button").dataset.id = entry.id;
+  return node;
+}
+
+async function lookupFood() {
+  const query = document.querySelector("#foodName").value.trim();
+  if (!query) return;
+
+  nodes.lookupFood.disabled = true;
+  nodes.lookupStatus.textContent = "Buscando alimento...";
+
+  const localMatch = findLocalFood(query);
+  if (localMatch) {
+    applyFoodMatch(localMatch, "base local");
+  }
+
+  try {
+    const onlineMatch = await findOnlineFood(query);
+    if (onlineMatch) {
+      applyFoodMatch(onlineMatch, "Open Food Facts");
+      return;
+    }
+    if (!localMatch) {
+      nodes.lookupStatus.textContent = "No lo encontre. Puedes escribir kcal/100g y proteina/100g manualmente.";
+    }
+  } catch {
+    if (!localMatch) {
+      nodes.lookupStatus.textContent = "Sin conexion o sin resultado. Puedes escribir los valores manualmente.";
+    }
+  } finally {
+    nodes.lookupFood.disabled = false;
+  }
+}
+
+function findLocalFood(query) {
+  const normalized = normalize(query);
+  return localFoods.find((food) => food.keywords.some((keyword) => normalized.includes(normalize(keyword))));
+}
+
+async function findOnlineFood(query) {
+  const params = new URLSearchParams({
+    search_terms: query,
+    search_simple: "1",
+    action: "process",
+    json: "1",
+    page_size: "8",
+    fields: "product_name,brands,nutriments",
+  });
+  const response = await fetch(`https://world.openfoodfacts.org/cgi/search.pl?${params.toString()}`);
+  if (!response.ok) return null;
+  const data = await response.json();
+  const product = (data.products || []).find((item) => {
+    const nutriments = item.nutriments || {};
+    return numeric(nutriments["energy-kcal_100g"]) > 0 && numeric(nutriments.proteins_100g) >= 0;
+  });
+  if (!product) return null;
+  const nutriments = product.nutriments || {};
+  return {
+    name: product.product_name || query,
+    brand: product.brands || "",
+    calories: numeric(nutriments["energy-kcal_100g"]),
+    protein: numeric(nutriments.proteins_100g),
+  };
+}
+
+function applyFoodMatch(food, source) {
+  document.querySelector("#foodName").value = food.name;
+  document.querySelector("#caloriesPer100").value = round(food.calories, 1);
+  document.querySelector("#proteinPer100").value = round(food.protein, 1);
+  const brand = food.brand ? ` (${food.brand})` : "";
+  nodes.lookupStatus.textContent = `${food.name}${brand}: ${round(food.calories, 1)} kcal y ${round(food.protein, 1)}g proteina por 100g. Fuente: ${source}.`;
+}
+
+function normalize(value) {
+  return value
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "");
+}
+
+function numeric(value) {
+  const parsed = Number.parseFloat(value);
+  return Number.isFinite(parsed) ? parsed : 0;
+}
+
+function round(value, decimals) {
+  return Math.round(value * 10 ** decimals) / 10 ** decimals;
+}
+
+function percentOf(value, goal) {
+  return goal > 0 ? Math.round((value / goal) * 100) : 0;
+}
+
+function setProgress(bar, label, percent) {
+  bar.style.width = `${Math.min(percent, 100)}%`;
+  label.textContent = `${percent}%`;
+}
+
+function saveEntries() {
+  localStorage.setItem(storageKey, JSON.stringify(state.entries));
+}
+
+function readJson(key, fallback) {
+  try {
+    const value = localStorage.getItem(key);
+    return value ? JSON.parse(value) : fallback;
+  } catch {
+    return fallback;
+  }
+}
+
+function numberFrom(selector, fallback) {
+  const value = Number.parseFloat(document.querySelector(selector).value);
+  return Number.isFinite(value) ? value : fallback;
+}
+
+function formatNumber(value, decimals) {
+  return Number(value).toLocaleString("es-MX", {
+    maximumFractionDigits: decimals,
+    minimumFractionDigits: 0,
+  });
+}
+
+render();
+setView("today");
+
+    </script>
+  </body>
+</html>

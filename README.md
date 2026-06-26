@@ -30,6 +30,16 @@ Tambien hay una copia lista para GitHub Pages en `docs/`. Cuando Pages este acti
 https://jorgeemilianogarciavargas-gif.github.io/calories-counter/
 ```
 
+## Version movil personal
+
+Tambien hay un HTML autocontenido para enviar directo al telefono:
+
+```text
+outputs/calorias-proteina-movil-personal/calorias-proteina-movil.html
+```
+
+Esa version no depende de GitHub Pages. Abrela con Chrome en Android.
+
 ## Windows
 
 Abre:
