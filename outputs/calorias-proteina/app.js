@@ -7,6 +7,23 @@ const defaultGoals = {
   protein: 160,
 };
 
+const localFoods = [
+  { keywords: ["pollo", "pechuga"], name: "Pechuga de pollo", calories: 165, protein: 31 },
+  { keywords: ["atun", "atún"], name: "Atun", calories: 132, protein: 28 },
+  { keywords: ["huevo"], name: "Huevo", calories: 143, protein: 12.6 },
+  { keywords: ["arroz"], name: "Arroz cocido", calories: 130, protein: 2.7 },
+  { keywords: ["frijol", "frijoles"], name: "Frijoles cocidos", calories: 132, protein: 8.9 },
+  { keywords: ["avena"], name: "Avena", calories: 389, protein: 16.9 },
+  { keywords: ["leche"], name: "Leche entera", calories: 61, protein: 3.2 },
+  { keywords: ["yogur", "yogurt"], name: "Yogur griego natural", calories: 97, protein: 9 },
+  { keywords: ["platano", "plátano", "banana"], name: "Platano", calories: 89, protein: 1.1 },
+  { keywords: ["manzana"], name: "Manzana", calories: 52, protein: 0.3 },
+  { keywords: ["tortilla"], name: "Tortilla de maiz", calories: 218, protein: 5.7 },
+  { keywords: ["res", "carne"], name: "Carne de res magra", calories: 250, protein: 26 },
+  { keywords: ["salmon", "salmón"], name: "Salmon", calories: 208, protein: 20 },
+  { keywords: ["papa", "patata"], name: "Papa cocida", calories: 87, protein: 1.9 },
+];
+
 const state = {
   activeView: "today",
   goals: readJson(goalsKey, defaultGoals),
@@ -17,6 +34,8 @@ const nodes = {
   form: document.querySelector("#foodForm"),
   resetDay: document.querySelector("#resetDay"),
   saveGoals: document.querySelector("#saveGoals"),
+  lookupFood: document.querySelector("#lookupFood"),
+  lookupStatus: document.querySelector("#lookupStatus"),
   caloriesGoal: document.querySelector("#caloriesGoal"),
   proteinGoal: document.querySelector("#proteinGoal"),
   caloriesGoalText: document.querySelector("#caloriesGoalText"),
@@ -45,30 +64,34 @@ nodes.navButtons.forEach((button) => {
   });
 });
 
+nodes.lookupFood.addEventListener("click", lookupFood);
+document.querySelector("#foodName").addEventListener("change", lookupFood);
+
 nodes.form.addEventListener("submit", (event) => {
   event.preventDefault();
 
   const data = new FormData(nodes.form);
-  const servings = numberFrom("#servings", 1);
-  const caloriesPerServing = numberFrom("#calories", 0);
-  const proteinPerServing = numberFrom("#protein", 0);
+  const grams = numberFrom("#grams", 100);
+  const caloriesPer100 = numberFrom("#caloriesPer100", 0);
+  const proteinPer100 = numberFrom("#proteinPer100", 0);
   const name = document.querySelector("#foodName").value.trim();
 
-  if (!name || servings <= 0) return;
+  if (!name || grams <= 0) return;
 
   state.entries.unshift({
     id: crypto.randomUUID(),
     name,
     meal: data.get("meal"),
-    servings,
-    calories: caloriesPerServing * servings,
-    protein: proteinPerServing * servings,
+    grams,
+    calories: (caloriesPer100 * grams) / 100,
+    protein: (proteinPer100 * grams) / 100,
     createdAt: new Date().toISOString(),
   });
 
   saveEntries();
   nodes.form.reset();
-  document.querySelector("#servings").value = 1;
+  document.querySelector("#grams").value = 100;
+  nodes.lookupStatus.textContent = "Busca un alimento para calcular sus macros.";
   document.querySelector('input[name="meal"][value="Desayuno"]').checked = true;
   render();
   setView("today");
@@ -153,11 +176,98 @@ function renderEntry(entry) {
   const node = nodes.template.content.firstElementChild.cloneNode(true);
   node.querySelector(".entry-meal").textContent = entry.meal;
   node.querySelector(".entry-name").textContent = entry.name;
-  node.querySelector(".entry-servings").textContent = `${formatNumber(entry.servings, 1)} porcion${entry.servings === 1 ? "" : "es"}`;
+  node.querySelector(".entry-servings").textContent = entry.grams
+    ? `${formatNumber(entry.grams, 0)}g`
+    : `${formatNumber(entry.servings || 1, 1)} porcion${entry.servings === 1 ? "" : "es"}`;
   node.querySelector(".entry-calories").textContent = `${formatNumber(entry.calories, 0)} kcal`;
   node.querySelector(".entry-protein").textContent = `${formatNumber(entry.protein, 1)}g proteina`;
   node.querySelector(".delete-button").dataset.id = entry.id;
   return node;
+}
+
+async function lookupFood() {
+  const query = document.querySelector("#foodName").value.trim();
+  if (!query) return;
+
+  nodes.lookupFood.disabled = true;
+  nodes.lookupStatus.textContent = "Buscando alimento...";
+
+  const localMatch = findLocalFood(query);
+  if (localMatch) {
+    applyFoodMatch(localMatch, "base local");
+  }
+
+  try {
+    const onlineMatch = await findOnlineFood(query);
+    if (onlineMatch) {
+      applyFoodMatch(onlineMatch, "Open Food Facts");
+      return;
+    }
+    if (!localMatch) {
+      nodes.lookupStatus.textContent = "No lo encontre. Puedes escribir kcal/100g y proteina/100g manualmente.";
+    }
+  } catch {
+    if (!localMatch) {
+      nodes.lookupStatus.textContent = "Sin conexion o sin resultado. Puedes escribir los valores manualmente.";
+    }
+  } finally {
+    nodes.lookupFood.disabled = false;
+  }
+}
+
+function findLocalFood(query) {
+  const normalized = normalize(query);
+  return localFoods.find((food) => food.keywords.some((keyword) => normalized.includes(normalize(keyword))));
+}
+
+async function findOnlineFood(query) {
+  const params = new URLSearchParams({
+    search_terms: query,
+    search_simple: "1",
+    action: "process",
+    json: "1",
+    page_size: "8",
+    fields: "product_name,brands,nutriments",
+  });
+  const response = await fetch(`https://world.openfoodfacts.org/cgi/search.pl?${params.toString()}`);
+  if (!response.ok) return null;
+  const data = await response.json();
+  const product = (data.products || []).find((item) => {
+    const nutriments = item.nutriments || {};
+    return numeric(nutriments["energy-kcal_100g"]) > 0 && numeric(nutriments.proteins_100g) >= 0;
+  });
+  if (!product) return null;
+  const nutriments = product.nutriments || {};
+  return {
+    name: product.product_name || query,
+    brand: product.brands || "",
+    calories: numeric(nutriments["energy-kcal_100g"]),
+    protein: numeric(nutriments.proteins_100g),
+  };
+}
+
+function applyFoodMatch(food, source) {
+  document.querySelector("#foodName").value = food.name;
+  document.querySelector("#caloriesPer100").value = round(food.calories, 1);
+  document.querySelector("#proteinPer100").value = round(food.protein, 1);
+  const brand = food.brand ? ` (${food.brand})` : "";
+  nodes.lookupStatus.textContent = `${food.name}${brand}: ${round(food.calories, 1)} kcal y ${round(food.protein, 1)}g proteina por 100g. Fuente: ${source}.`;
+}
+
+function normalize(value) {
+  return value
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "");
+}
+
+function numeric(value) {
+  const parsed = Number.parseFloat(value);
+  return Number.isFinite(parsed) ? parsed : 0;
+}
+
+function round(value, decimals) {
+  return Math.round(value * 10 ** decimals) / 10 ** decimals;
 }
 
 function percentOf(value, goal) {

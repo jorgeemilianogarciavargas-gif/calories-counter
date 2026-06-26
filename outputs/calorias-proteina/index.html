@@ -81,10 +81,14 @@
             <h2 id="entryTitle">Agregar alimento</h2>
           </div>
           <form id="foodForm" autocomplete="off">
-            <label class="full">
-              <span>Nombre</span>
-              <input id="foodName" required maxlength="40" placeholder="Ej. Pechuga de pollo" />
-            </label>
+            <div class="lookup-row">
+              <label class="full">
+                <span>Alimento</span>
+                <input id="foodName" required maxlength="40" placeholder="Ej. pechuga de pollo" />
+              </label>
+              <button class="lookup-button" id="lookupFood" type="button">Buscar</button>
+            </div>
+            <p class="lookup-status" id="lookupStatus">Busca un alimento para calcular sus macros.</p>
 
             <div class="meal-tabs" role="radiogroup" aria-label="Comida">
               <label><input type="radio" name="meal" value="Desayuno" checked /><span>Desayuno</span></label>
@@ -95,16 +99,16 @@
 
             <div class="form-grid">
               <label>
-                <span>Porciones</span>
-                <input id="servings" type="number" inputmode="decimal" min="0.1" step="0.1" value="1" required />
+                <span>Gramos</span>
+                <input id="grams" type="number" inputmode="decimal" min="1" step="1" value="100" required />
               </label>
               <label>
-                <span>kcal/porcion</span>
-                <input id="calories" type="number" inputmode="numeric" min="0" step="1" required />
+                <span>kcal/100g</span>
+                <input id="caloriesPer100" type="number" inputmode="decimal" min="0" step="0.1" required />
               </label>
               <label>
-                <span>Proteina/porcion</span>
-                <input id="protein" type="number" inputmode="decimal" min="0" step="0.1" required />
+                <span>Proteina/100g</span>
+                <input id="proteinPer100" type="number" inputmode="decimal" min="0" step="0.1" required />
               </label>
             </div>
 
