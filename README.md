@@ -24,6 +24,12 @@ En Android, usa la IP local de la computadora en vez de `127.0.0.1`.
 La interfaz movil tiene navegacion inferior con las pantallas Hoy, Agregar e Historial.
 En Agregar puedes buscar un alimento y escribir gramos; la app rellena kcal/proteina por 100g con Open Food Facts cuando hay internet y usa una base local para alimentos comunes.
 
+Tambien hay una copia lista para GitHub Pages en `docs/`. Cuando Pages este activo, la app se podra abrir desde:
+
+```text
+https://jorgeemilianogarciavargas-gif.github.io/calories-counter/
+```
+
 ## Windows
 
 Abre:
