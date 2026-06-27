@@ -1,4 +1,4 @@
-const cacheName = "calorias-proteina-mobile-v6";
+const cacheName = "calorias-proteina-mobile-v7";
 const assets = [
   "./",
   "./index.html",

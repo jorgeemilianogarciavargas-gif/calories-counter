@@ -39,6 +39,7 @@ const nodes = {
   saveGoals: document.querySelector("#saveGoals"),
   lookupFood: document.querySelector("#lookupFood"),
   lookupStatus: document.querySelector("#lookupStatus"),
+  entryDate: document.querySelector("#entryDate"),
   caloriesGoal: document.querySelector("#caloriesGoal"),
   proteinGoal: document.querySelector("#proteinGoal"),
   caloriesGoalText: document.querySelector("#caloriesGoalText"),
@@ -62,6 +63,8 @@ const nodes = {
 
 nodes.caloriesGoal.value = state.goals.calories;
 nodes.proteinGoal.value = state.goals.protein;
+nodes.entryDate.value = todayKey;
+nodes.entryDate.max = todayKey;
 
 nodes.navButtons.forEach((button) => {
   button.addEventListener("click", () => {
@@ -81,10 +84,11 @@ nodes.form.addEventListener("submit", (event) => {
   const caloriesPer100 = numberFrom("#caloriesPer100", 0);
   const proteinPer100 = numberFrom("#proteinPer100", 0);
   const name = document.querySelector("#foodName").value.trim();
+  const targetDay = normalizeEntryDay(nodes.entryDate.value);
 
   if (!name || grams <= 0) return;
 
-  state.entries.unshift({
+  const entry = {
     id: crypto.randomUUID(),
     name,
     meal: data.get("meal"),
@@ -92,16 +96,24 @@ nodes.form.addEventListener("submit", (event) => {
     calories: (caloriesPer100 * grams) / 100,
     protein: (proteinPer100 * grams) / 100,
     createdAt: new Date().toISOString(),
-  });
+  };
 
-  saveTodayEntries();
-  state.historyDay = todayKey;
+  const targetEntries = readEntriesForDay(targetDay);
+  targetEntries.unshift(entry);
+  saveEntriesForDay(targetDay, targetEntries);
+  if (targetDay === todayKey) {
+    state.entries = targetEntries;
+  }
+
+  state.historyDay = targetDay;
   nodes.form.reset();
   document.querySelector("#grams").value = 100;
+  nodes.entryDate.value = todayKey;
+  nodes.entryDate.max = todayKey;
   nodes.lookupStatus.textContent = "Busca un alimento para calcular sus macros.";
   document.querySelector('input[name="meal"][value="Desayuno"]').checked = true;
   render();
-  setView("today");
+  setView(targetDay === todayKey ? "today" : "log");
 });
 
 nodes.saveGoals.addEventListener("click", () => {
@@ -322,6 +334,8 @@ function rolloverIfNeeded(shouldRender = true) {
   todayKey = currentDay;
   state.entries = readJson(storageKeyForDay(todayKey), []);
   state.historyDay = todayKey;
+  nodes.entryDate.value = todayKey;
+  nodes.entryDate.max = todayKey;
   scheduleMidnightRollover();
   if (shouldRender) render();
 }
@@ -356,6 +370,11 @@ function getLocalDayKey(date = new Date()) {
   const month = String(date.getMonth() + 1).padStart(2, "0");
   const day = String(date.getDate()).padStart(2, "0");
   return `${year}-${month}-${day}`;
+}
+
+function normalizeEntryDay(day) {
+  if (!day || day > todayKey) return todayKey;
+  return day;
 }
 
 function scheduleMidnightRollover() {
