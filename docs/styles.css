@@ -395,6 +395,54 @@ input:focus {
   gap: 10px;
 }
 
+.day-history {
+  display: flex;
+  gap: 8px;
+  margin: -2px -2px 12px;
+  padding: 2px 2px 4px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.day-history::-webkit-scrollbar {
+  display: none;
+}
+
+.day-button {
+  flex: 0 0 auto;
+  min-height: 38px;
+  padding: 0 12px;
+  border: 1px solid #cfc8ba;
+  border-radius: 8px;
+  color: var(--ink);
+  background: #fffaf0;
+  font-size: 0.82rem;
+  font-weight: 850;
+}
+
+.day-button.is-active {
+  color: white;
+  border-color: var(--green-dark);
+  background: var(--green-dark);
+}
+
+.history-summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 48px;
+  margin-bottom: 12px;
+  padding: 0 12px;
+  border-radius: 8px;
+  background: #f4efe5;
+}
+
+.history-summary span {
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
 .entry-card {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;

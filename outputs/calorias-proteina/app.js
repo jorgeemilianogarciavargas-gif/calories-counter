@@ -1,6 +1,7 @@
 const todayKey = new Date().toISOString().slice(0, 10);
-const storageKey = `macro-diary:${todayKey}`;
 const goalsKey = "macro-diary:goals";
+const daysKey = "macro-diary:days";
+const storageKeyForDay = (day) => `macro-diary:${day}`;
 
 const defaultGoals = {
   calories: 2200,
@@ -26,8 +27,9 @@ const localFoods = [
 
 const state = {
   activeView: "today",
+  historyDay: todayKey,
   goals: readJson(goalsKey, defaultGoals),
-  entries: readJson(storageKey, []),
+  entries: readJson(storageKeyForDay(todayKey), []),
 };
 
 const nodes = {
@@ -47,6 +49,8 @@ const nodes = {
   caloriePercent: document.querySelector("#caloriePercent"),
   proteinPercent: document.querySelector("#proteinPercent"),
   dailyScore: document.querySelector("#dailyScore"),
+  dayHistory: document.querySelector("#dayHistory"),
+  historySummary: document.querySelector("#historySummary"),
   entriesList: document.querySelector("#entriesList"),
   emptyState: document.querySelector("#emptyState"),
   entryCount: document.querySelector("#entryCount"),
@@ -88,7 +92,8 @@ nodes.form.addEventListener("submit", (event) => {
     createdAt: new Date().toISOString(),
   });
 
-  saveEntries();
+  saveTodayEntries();
+  state.historyDay = todayKey;
   nodes.form.reset();
   document.querySelector("#grams").value = 100;
   nodes.lookupStatus.textContent = "Busca un alimento para calcular sus macros.";
@@ -111,16 +116,23 @@ nodes.resetDay.addEventListener("click", () => {
   const shouldReset = window.confirm("Quieres limpiar el registro de hoy?");
   if (!shouldReset) return;
   state.entries = [];
-  saveEntries();
+  state.historyDay = todayKey;
+  saveTodayEntries();
   render();
 });
 
 nodes.entriesList.addEventListener("click", (event) => {
   const button = event.target.closest(".delete-button");
   if (!button) return;
-  state.entries = state.entries.filter((entry) => entry.id !== button.dataset.id);
-  saveEntries();
+  deleteEntry(button.dataset.id);
   render();
+});
+
+nodes.dayHistory.addEventListener("click", (event) => {
+  const button = event.target.closest(".day-button");
+  if (!button) return;
+  state.historyDay = button.dataset.day;
+  renderHistory();
 });
 
 function setView(viewName) {
@@ -144,14 +156,7 @@ function setView(viewName) {
 }
 
 function render() {
-  const totals = state.entries.reduce(
-    (sum, entry) => ({
-      calories: sum.calories + entry.calories,
-      protein: sum.protein + entry.protein,
-    }),
-    { calories: 0, protein: 0 },
-  );
-
+  const totals = totalsFor(state.entries);
   const caloriePercent = percentOf(totals.calories, state.goals.calories);
   const proteinPercent = percentOf(totals.protein, state.goals.protein);
   const dailyScore = Math.round((Math.min(caloriePercent, 100) + Math.min(proteinPercent, 100)) / 2);
@@ -167,9 +172,35 @@ function render() {
   setProgress(nodes.proteinBar, nodes.proteinPercent, proteinPercent);
   nodes.dailyScore.textContent = `${dailyScore}%`;
 
-  nodes.entryCount.textContent = `${state.entries.length} ${state.entries.length === 1 ? "item" : "items"}`;
-  nodes.emptyState.hidden = state.entries.length > 0;
-  nodes.entriesList.replaceChildren(...state.entries.map(renderEntry));
+  renderHistory();
+}
+
+function renderHistory() {
+  const days = getSavedDays();
+  if (!days.includes(state.historyDay)) {
+    state.historyDay = days[0] || todayKey;
+  }
+
+  nodes.dayHistory.replaceChildren(...days.map(renderDayButton));
+
+  const entries = readEntriesForDay(state.historyDay);
+  const totals = totalsFor(entries);
+  nodes.entryCount.textContent = `${entries.length} ${entries.length === 1 ? "item" : "items"}`;
+  nodes.historySummary.innerHTML = `<strong>${formatNumber(totals.calories, 0)} kcal</strong><span>${formatNumber(totals.protein, 1)}g proteina</span>`;
+  nodes.emptyState.hidden = entries.length > 0;
+  nodes.emptyState.querySelector("p").textContent = days.length
+    ? "No hay alimentos guardados en este dia."
+    : "Agrega tu primer alimento para empezar tu historial.";
+  nodes.entriesList.replaceChildren(...entries.map(renderEntry));
+}
+
+function renderDayButton(day) {
+  const button = document.createElement("button");
+  button.type = "button";
+  button.className = `day-button${day === state.historyDay ? " is-active" : ""}`;
+  button.dataset.day = day;
+  button.textContent = day === todayKey ? "Hoy" : formatDay(day);
+  return button;
 }
 
 function renderEntry(entry) {
@@ -254,6 +285,55 @@ function applyFoodMatch(food, source) {
   nodes.lookupStatus.textContent = `${food.name}${brand}: ${round(food.calories, 1)} kcal y ${round(food.protein, 1)}g proteina por 100g. Fuente: ${source}.`;
 }
 
+function totalsFor(entries) {
+  return entries.reduce(
+    (sum, entry) => ({
+      calories: sum.calories + entry.calories,
+      protein: sum.protein + entry.protein,
+    }),
+    { calories: 0, protein: 0 },
+  );
+}
+
+function saveTodayEntries() {
+  saveEntriesForDay(todayKey, state.entries);
+}
+
+function saveEntriesForDay(day, entries) {
+  localStorage.setItem(storageKeyForDay(day), JSON.stringify(entries));
+  updateSavedDays(day, entries.length > 0);
+}
+
+function readEntriesForDay(day) {
+  if (day === todayKey) return state.entries;
+  return readJson(storageKeyForDay(day), []);
+}
+
+function deleteEntry(entryId) {
+  const day = state.historyDay;
+  const entries = readEntriesForDay(day).filter((entry) => entry.id !== entryId);
+  if (day === todayKey) {
+    state.entries = entries;
+  }
+  saveEntriesForDay(day, entries);
+}
+
+function getSavedDays() {
+  const days = readJson(daysKey, []);
+  const merged = [...new Set([todayKey, ...days])].filter((day) => readEntriesForDay(day).length > 0 || day === todayKey);
+  return merged.sort((a, b) => b.localeCompare(a));
+}
+
+function updateSavedDays(day, shouldKeep) {
+  const days = new Set(readJson(daysKey, []));
+  if (shouldKeep) {
+    days.add(day);
+  } else {
+    days.delete(day);
+  }
+  localStorage.setItem(daysKey, JSON.stringify([...days].sort((a, b) => b.localeCompare(a))));
+}
+
 function normalize(value) {
   return value
     .toLowerCase()
@@ -279,10 +359,6 @@ function setProgress(bar, label, percent) {
   label.textContent = `${percent}%`;
 }
 
-function saveEntries() {
-  localStorage.setItem(storageKey, JSON.stringify(state.entries));
-}
-
 function readJson(key, fallback) {
   try {
     const value = localStorage.getItem(key);
@@ -302,6 +378,11 @@ function formatNumber(value, decimals) {
     maximumFractionDigits: decimals,
     minimumFractionDigits: 0,
   });
+}
+
+function formatDay(day) {
+  const [year, month, date] = day.split("-");
+  return `${date}/${month}/${year.slice(2)}`;
 }
 
 if ("serviceWorker" in navigator && location.protocol !== "file:") {
