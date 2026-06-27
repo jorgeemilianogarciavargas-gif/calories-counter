@@ -25,7 +25,7 @@ La interfaz movil tiene navegacion inferior con las pantallas Hoy, Agregar e His
 En Agregar puedes buscar un alimento y escribir gramos; la app rellena kcal/proteina por 100g con Open Food Facts cuando hay internet y usa una base local para alimentos comunes.
 El Historial guarda los dias localmente en el navegador para revisar registros anteriores.
 El cambio de dia se hace con la fecha local del telefono y se reinicia automaticamente a las 12:00 AM.
-Al agregar alimentos puedes elegir una fecha anterior para completar registros pasados.
+Al agregar alimentos puedes elegir una fecha anterior para completar registros pasados con un selector de Hoy, Ayer y dias recientes.
 
 Tambien hay una copia lista para GitHub Pages en `docs/`. Cuando Pages este activo, la app se podra abrir desde:
 
@@ -44,7 +44,7 @@ outputs/calorias-proteina-movil-personal/calorias-proteina-movil.html
 Esa version no depende de GitHub Pages. Abrela con Chrome en Android.
 Tambien conserva el historial local por dias en el navegador del telefono.
 El reinicio diario tambien ocurre a las 12:00 AM del telefono.
-Tambien puedes anotar alimentos en dias anteriores desde el selector de fecha.
+Tambien puedes anotar alimentos en dias anteriores desde el selector de Hoy, Ayer y dias recientes.
 
 ## Windows
 

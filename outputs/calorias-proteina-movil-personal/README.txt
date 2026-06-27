@@ -4,6 +4,6 @@ Calorias y Proteina - version movil personal
 2. Abre el archivo con Chrome en Android.
 3. La app guarda el historial local por dias en el navegador del telefono.
 4. El dia se reinicia automaticamente a las 12:00 AM del telefono.
-5. Puedes elegir una fecha anterior al agregar alimentos.
+5. Puedes elegir una fecha anterior con el selector Hoy/Ayer/dias anteriores.
 
 Esta version funciona como archivo local y guarda datos en el navegador del telefono.

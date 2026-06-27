@@ -63,8 +63,7 @@ const nodes = {
 
 nodes.caloriesGoal.value = state.goals.calories;
 nodes.proteinGoal.value = state.goals.protein;
-nodes.entryDate.value = todayKey;
-nodes.entryDate.max = todayKey;
+populateEntryDateOptions();
 
 nodes.navButtons.forEach((button) => {
   button.addEventListener("click", () => {
@@ -108,8 +107,7 @@ nodes.form.addEventListener("submit", (event) => {
   state.historyDay = targetDay;
   nodes.form.reset();
   document.querySelector("#grams").value = 100;
-  nodes.entryDate.value = todayKey;
-  nodes.entryDate.max = todayKey;
+  populateEntryDateOptions();
   nodes.lookupStatus.textContent = "Busca un alimento para calcular sus macros.";
   document.querySelector('input[name="meal"][value="Desayuno"]').checked = true;
   render();
@@ -334,8 +332,7 @@ function rolloverIfNeeded(shouldRender = true) {
   todayKey = currentDay;
   state.entries = readJson(storageKeyForDay(todayKey), []);
   state.historyDay = todayKey;
-  nodes.entryDate.value = todayKey;
-  nodes.entryDate.max = todayKey;
+  populateEntryDateOptions();
   scheduleMidnightRollover();
   if (shouldRender) render();
 }
@@ -370,6 +367,30 @@ function getLocalDayKey(date = new Date()) {
   const month = String(date.getMonth() + 1).padStart(2, "0");
   const day = String(date.getDate()).padStart(2, "0");
   return `${year}-${month}-${day}`;
+}
+
+function populateEntryDateOptions() {
+  const selectedDay = normalizeEntryDay(nodes.entryDate.value || todayKey);
+  const days = [];
+  for (let index = 0; index < 30; index += 1) {
+    const date = new Date();
+    date.setDate(date.getDate() - index);
+    days.push(getLocalDayKey(date));
+  }
+
+  if (!days.includes(selectedDay)) {
+    days.push(selectedDay);
+  }
+
+  nodes.entryDate.replaceChildren(
+    ...days.map((day, index) => {
+      const option = document.createElement("option");
+      option.value = day;
+      option.textContent = index === 0 ? "Hoy" : index === 1 ? "Ayer" : formatDay(day);
+      option.selected = day === selectedDay;
+      return option;
+    }),
+  );
 }
 
 function normalizeEntryDay(day) {
