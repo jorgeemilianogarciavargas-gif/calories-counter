@@ -744,10 +744,11 @@ input:focus {
     </template>
 
     <script>
-const todayKey = new Date().toISOString().slice(0, 10);
+let todayKey = getLocalDayKey();
 const goalsKey = "macro-diary:goals";
 const daysKey = "macro-diary:days";
 const storageKeyForDay = (day) => `macro-diary:${day}`;
+let midnightTimer = null;
 
 const defaultGoals = {
   calories: 2200,
@@ -819,6 +820,7 @@ document.querySelector("#foodName").addEventListener("change", lookupFood);
 
 nodes.form.addEventListener("submit", (event) => {
   event.preventDefault();
+  rolloverIfNeeded();
 
   const data = new FormData(nodes.form);
   const grams = numberFrom("#grams", 100);
@@ -882,6 +884,7 @@ nodes.dayHistory.addEventListener("click", (event) => {
 });
 
 function setView(viewName) {
+  rolloverIfNeeded();
   state.activeView = viewName;
   nodes.views.forEach((view) => {
     view.classList.toggle("is-active", view.dataset.view === viewName);
@@ -902,6 +905,7 @@ function setView(viewName) {
 }
 
 function render() {
+  rolloverIfNeeded(false);
   const totals = totalsFor(state.entries);
   const caloriePercent = percentOf(totals.calories, state.goals.calories);
   const proteinPercent = percentOf(totals.protein, state.goals.protein);
@@ -1042,6 +1046,7 @@ function totalsFor(entries) {
 }
 
 function saveTodayEntries() {
+  rolloverIfNeeded(false);
   saveEntriesForDay(todayKey, state.entries);
 }
 
@@ -1053,6 +1058,18 @@ function saveEntriesForDay(day, entries) {
 function readEntriesForDay(day) {
   if (day === todayKey) return state.entries;
   return readJson(storageKeyForDay(day), []);
+}
+
+function rolloverIfNeeded(shouldRender = true) {
+  const currentDay = getLocalDayKey();
+  if (currentDay === todayKey) return;
+
+  saveEntriesForDay(todayKey, state.entries);
+  todayKey = currentDay;
+  state.entries = readJson(storageKeyForDay(todayKey), []);
+  state.historyDay = todayKey;
+  scheduleMidnightRollover();
+  if (shouldRender) render();
 }
 
 function deleteEntry(entryId) {
@@ -1078,6 +1095,23 @@ function updateSavedDays(day, shouldKeep) {
     days.delete(day);
   }
   localStorage.setItem(daysKey, JSON.stringify([...days].sort((a, b) => b.localeCompare(a))));
+}
+
+function getLocalDayKey(date = new Date()) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
+function scheduleMidnightRollover() {
+  if (midnightTimer) clearTimeout(midnightTimer);
+  const now = new Date();
+  const nextMidnight = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1, 0, 0, 1);
+  midnightTimer = setTimeout(() => {
+    rolloverIfNeeded();
+    scheduleMidnightRollover();
+  }, nextMidnight.getTime() - now.getTime());
 }
 
 function normalize(value) {
@@ -1133,6 +1167,7 @@ function formatDay(day) {
 
 render();
 setView("today");
+scheduleMidnightRollover();
 
     </script>
   </body>
